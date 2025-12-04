@@ -37,7 +37,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.1.0'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.0'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -86,9 +86,21 @@ class Slash_Edit {
 	 * Add rewrite rules
 	 *
 	 * @param array $rules Rewrite rules.
+	 *
+	 * @global WP_Rewrite $wp_rewrite
 	 * @return array
 	 */
 	public static function add_rewrite_rules( $rules ) {
+		/**
+		 * WP_Rewrite $wp_rewrite WordPress rewrite object.
+		 *
+		 * This is not always set on init.
+		 */
+		global $wp_rewrite;
+
+		if ( ! is_object( $wp_rewrite ) ) {
+			return $rules;
+		}
 		// Get taxonomies.
 		$taxonomies  = get_taxonomies();
 		$blog_prefix = '';
@@ -117,6 +129,38 @@ class Slash_Edit {
 			$endpoint_structure       = 'index.php?' . $key . '=$matches[1]&' . $endpoint . '=$matches[3]';
 			$rules[ $rule_structure ] = $endpoint_structure;
 		}
+
+		// Add post type archive rules. This allows things like /faqs/edit, and will take  you to the post type edit screen.
+		$post_types    = get_post_types( array( 'has_archive' => true ) );
+		$archive_rules = array();
+		foreach ( $post_types as $post_type ) {
+			$post_type_obj = get_post_type_object( $post_type );
+
+			// Determine the archive slug.
+			$slug = $post_type;
+			if ( is_string( $post_type_obj->has_archive ) ) {
+				$slug = $post_type_obj->has_archive;
+			} elseif ( isset( $post_type_obj->rewrite['slug'] ) ) {
+				$slug = $post_type_obj->rewrite['slug'];
+			}
+
+			// Check if we need to add front.
+			$has_front = false;
+			if ( isset( $post_type_obj->rewrite['with_front'] ) && true === $post_type_obj->rewrite['with_front'] ) {
+				$has_front = true;
+			}
+
+			if ( $has_front && ! empty( $wp_rewrite->front ) ) {
+				$slug = substr( $wp_rewrite->front, 1 ) . $slug;
+			}
+
+			// Add the archive edit rule.
+			$rule_structure                   = "{$blog_prefix}{$slug}/{$endpoint}/?$";
+			$endpoint_structure               = 'index.php?post_type=' . $post_type . '&' . $endpoint . '=1';
+			$archive_rules[ $rule_structure ] = $endpoint_structure;
+		}
+		// Merge archive rules at the beginning for precedence.
+		$rules = $archive_rules + $rules;
 		// Add home_url/edit to rewrites.
 		$add_frontpage_edit_rules = false;
 		if ( ! get_page_by_path( $endpoint ) ) {
@@ -173,7 +217,7 @@ class Slash_Edit {
 		}
 
 		// Refresh rewrite rules if plugin is activated.
-		add_rewrite_endpoint( $endpoint, EP_PERMALINK | EP_PAGES | EP_CATEGORIES | EP_TAGS | EP_AUTHORS ); // todo - adding EP_ATTACHMENT messes up EP_PERMALINK and EP_PAGES.
+		add_rewrite_endpoint( $endpoint, EP_PERMALINK | EP_PAGES | EP_CATEGORIES | EP_TAGS | EP_AUTHORS | EP_ALL_ARCHIVES ); // todo - adding EP_ATTACHMENT messes up EP_PERMALINK and EP_PAGES.
 		if ( get_option( 'slash_edit_install', 'false' ) === 'true' ) {
 			flush_rewrite_rules( false );
 			delete_option( 'slash_edit_install' );
@@ -247,6 +291,17 @@ class Slash_Edit {
 						'post_type' => $post_type,
 					),
 					admin_url( 'edit-tags.php' )
+				);
+			}
+		} elseif ( is_post_type_archive() ) {
+			$post_type     = sanitize_key( get_query_var( 'post_type' ) );
+			$post_type_obj = get_post_type_object( $post_type );
+			if ( null !== $post_type_obj ) {
+				$edit_url = add_query_arg(
+					array(
+						'post_type' => $post_type,
+					),
+					admin_url( 'edit.php' )
 				);
 			}
 		}
