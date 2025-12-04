@@ -1,0 +1,24 @@
+{
+  "name": "slash-edit",
+  "version": "1.0.0",
+  "description": "Slash Edit for WordPress",
+  "main": "index.js",
+  "scripts": {
+    "build": "grunt compress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronalfy/slash-edit.git"
+  },
+  "author": "Ronald Huereca",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ronalfy/slash-edit/issues"
+  },
+  "homepage": "https://github.com/ronalfy/slash-edit#readme",
+  "devDependencies": {
+    "grunt": "^1.6.1",
+    "grunt-cli": "^1.5.0",
+    "grunt-contrib-compress": "^2.0.0"
+  }
+}

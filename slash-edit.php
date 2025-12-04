@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name: Slash Edit
- * Plugin URI: https://wordpress.org/extend/plugins/slash-edit/
+ * Plugin URI: https://mediaron.com
  * Description: Edit your posts or pages with a simple "/edit" at the end.
  * Author: ronalfy
- * Version: 1.1.1
+ * Version: 1.2.0
  * Requires at least: 3.9.1
- * Author URI: https://www.ronalfy.com
+ * Author URI: https://mediaron.com
  * Contributors: ronalfy
  *
  * @package slash-edit

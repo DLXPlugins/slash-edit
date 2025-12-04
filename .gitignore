@@ -13,3 +13,7 @@ wp-content/uploads/
 wp-content/wp-cache-config.php
 
 /deploy.sh
+
+node_modules
+
+slash-edit.zip
