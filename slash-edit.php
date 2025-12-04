@@ -107,7 +107,15 @@ class Slash_Edit {
 			if ( in_array( $key, $exclude, true ) ) {
 				continue;
 			}
-			$rules[ "{$blog_prefix}{$key}/([^/]+)/{$endpoint}(/(.*))?/?$" ] = 'index.php?' . $key . '=$matches[1]&' . $endpoint . '=$matches[3]';
+			// $key may have a front, so check the rewrite structure for a front.
+			$taxonomy_rewrite = get_taxonomy( $key )->rewrite;
+			$taxonomy_slug    = $key;
+			if ( isset( $taxonomy_rewrite['slug'] ) ) {
+				$taxonomy_slug = $taxonomy_rewrite['slug'];
+			}
+			$rule_structure           = "{$blog_prefix}{$taxonomy_slug}(?:/([^/]+)/)+{$endpoint}(/(.*))?/?$";
+			$endpoint_structure       = 'index.php?' . $key . '=$matches[1]&' . $endpoint . '=$matches[3]';
+			$rules[ $rule_structure ] = $endpoint_structure;
 		}
 		// Add home_url/edit to rewrites.
 		$add_frontpage_edit_rules = false;
@@ -222,13 +230,21 @@ class Slash_Edit {
 			if ( is_object( $tax_data ) && isset( $tax_data->term_id ) ) {
 				$term_id  = $tax_data->term_id;
 				$taxonomy = $tax_data->taxonomy;
+
+				// Get taxonomy post types.
+				$post_types = get_post_types( array( 'taxonomies' => array( $taxonomy ) ) );
+				$post_type  = current( array_keys( $post_types ) );
+				if ( count( $post_types ) > 1 ) {
+					$post_type = '';
+				}
+
 				// Build the url.
 				$edit_url = add_query_arg(
 					array(
 						'tag_ID'    => absint( $term_id ),
 						'taxonomy'  => $taxonomy,
 						'action'    => 'edit',
-						'post_type' => get_post_type(),
+						'post_type' => $post_type,
 					),
 					admin_url( 'edit-tags.php' )
 				);
