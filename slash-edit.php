@@ -62,6 +62,7 @@ class Slash_Edit {
 		add_filter( 'rewrite_rules_array', array( 'Slash_Edit', 'add_rewrite_rules' ) );
 		add_action( 'save_post', array( 'Slash_Edit', 'save_post' ) );
 		$this->endpoint = sanitize_title( apply_filters( 'slash_edit_endpoint', 'edit' ) );
+		add_action( 'admin_init', array( $this, 'maybe_redirect_from_admin' ) );
 	} //end constructor
 
 	/**
@@ -225,7 +226,59 @@ class Slash_Edit {
 	} //end init
 
 	/**
-	 * Maybe redirect. This is the main edit redirect logic.
+	 * Maybe redirect from admin.
+	 *
+	 * @return void
+	 */
+	public static function maybe_redirect_from_admin() {
+		if ( ! is_admin() ) {
+			return;
+		}
+		$action_name  = 'slash_edit_redirect';
+		$maybe_action = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS ) ) );
+		if ( $action_name !== $maybe_action ) {
+			return;
+		}
+
+		$token = sanitize_key( wp_unslash( filter_input( INPUT_GET, 'token', FILTER_SANITIZE_SPECIAL_CHARS ) ) );
+		if ( ! $token ) {
+			return;
+		}
+		$edit_url = get_transient( 'slash_edit_token_' . $token );
+		if ( ! $edit_url ) {
+			wp_safe_redirect( esc_url_raw( site_url() ) );
+			exit;
+		}
+		delete_transient( 'slash_edit_token_' . $token );
+
+		/**
+		 * Filter the capability check.
+		 *
+		 * @param string $capability_check The capability check.
+		 * @param string $edit_url The edit URL.
+		 * @return string
+		 */
+		$capability_check = apply_filters( 'slash_edit_capability_check', 'edit_others_posts', $edit_url );
+
+		/**
+		 * Filter Can Edit override. If true, the user can edit the item regardless of the capability check.
+		 *
+		 * @param bool $can_edit Whether the user can override the capability check and edit the item.
+		 * @param string $edit_url The edit URL.
+		 * @return bool
+		 */
+		$can_edit = apply_filters( 'slash_edit_can_edit', false, $edit_url );
+
+		if ( current_user_can( $capability_check ) || $can_edit ) {
+			wp_safe_redirect( esc_url_raw( $edit_url ) );
+		} else {
+			wp_die( __( 'You are not authorized to edit this item.', 'slash-edit' ) );
+		}
+		exit;
+	}
+
+	/**
+	 * Maybe redirect.
 	 *
 	 * @return void
 	 */
@@ -318,10 +371,7 @@ class Slash_Edit {
 		} elseif ( 'frontpage' === get_query_var( 'edit' ) ) {
 			// No front page set - so redirect back to homepage.
 			$edit_url = home_url();
-		}
-
-		// If we're on the blog URL, redirect to settings->reading.
-		if ( is_home() ) {
+		} elseif ( is_home() ) {
 			$edit_url = admin_url( 'options-reading.php' );
 		}
 
@@ -333,8 +383,20 @@ class Slash_Edit {
 			return;
 		}
 
-		// Redirect yo.
-		wp_safe_redirect( esc_url_raw( $edit_url ) );
+		// Create token. Lasts 5 minutes.
+		$token = sanitize_key( wp_generate_password( 20, false ) );
+		set_transient( 'slash_edit_token_' . $token, esc_url_raw( $edit_url ), 5 * MINUTE_IN_SECONDS );
+
+		$redirect_url = add_query_arg(
+			array(
+				'token'  => $token,
+				'action' => 'slash_edit_redirect',
+			),
+			admin_url()
+		);
+
+		// Redirect to admin with token.
+		wp_safe_redirect( esc_url_raw( $redirect_url ) );
 		exit;
 	}
 
