@@ -37,7 +37,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.2.0'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.1'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -138,7 +138,7 @@ class Slash_Edit {
 			$post_type_obj = get_post_type_object( $post_type );
 
 			// Determine the archive slug.
-			$slug = $post_type;
+			$slug = $post_type_obj->name;
 			if ( is_string( $post_type_obj->has_archive ) ) {
 				$slug = $post_type_obj->has_archive;
 			} elseif ( isset( $post_type_obj->rewrite['slug'] ) ) {
@@ -147,7 +147,7 @@ class Slash_Edit {
 
 			// Check if we need to add front.
 			$has_front = false;
-			if ( isset( $post_type_obj->rewrite['with_front'] ) && true === $post_type_obj->rewrite['with_front'] ) {
+			if ( isset( $post_type_obj->rewrite['with_front'] ) && true === $post_type_obj->rewrite['with_front'] && true === $post_type_obj->rewrite['with_front'] ) {
 				$has_front = true;
 			}
 
