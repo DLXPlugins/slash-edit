@@ -1,34 +1,88 @@
-=== Slash Edit ===
+=== Slash Edit: Admin Shortcuts to Edit Posts and Pages Faster ===
 Contributors: ronalfy
-Tags: admin, edit, edit post, edit page, quick-edit
-Requires at least: 3.9.1
-Tested up to: 6.9
+Tags: shortcuts, edit, edit post, edit page, quick-edit
+Requires at least: 6.5
+Tested up to: 7.0
 Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://mediaron.com/give/
 
-Quickly edit your posts, pages, post types, users, archives, and terms with a simple "/edit" shortcut at the end.
+Edit posts, pages, users, and more with a simple `/edit` URL shortcut. A fast admin shortcut for WordPress editing.
 
 == Description ==
 
-Quickly edit posts, pages, custom post types, users, archives, and terms (tags and categories) by adding a "/edit" to the end of the URL.  If you are not logged in, you will be prompted to log in in order to edit the item. Please note that only those with Editor privileges and above can quick-edit content.
+Slash Edit adds a simple **admin shortcut** to WordPress that lets you **edit posts and pages quickly** by adding `/edit` to any URL.
 
-Send clients pretty URLs to the admin instead of a ton of query variables!
+Instead of navigating through wp-admin or relying on the admin bar, just append `/edit` and go straight to the edit screen.
 
-> `https://domain.com/about/edit` instead of `https://domain.com/wp-admin/post.php?post=5&action=edit`
+> https://yoursite.com/about/edit
 
-The "/edit" functionality also works on author, taxonomy archives, post type archives, and if you have a page assigned as your front page of your site. If you try to edit from a blog archive, you'll be taken to Settings->Reading.
+This makes it easy to:
+
+* **Edit posts quickly**
+* **Edit pages quickly**
+* Use a reliable **quick edit shortcut**
+* Access a clean **admin shortcut to edit content**
 
 https://www.youtube.com/watch?v=8LKFK5-FokE
 
-This is useful if:
+== A True WordPress Shortcut for Editing ==
 
-* You are not logged in, and want an easy shortcut to edit an item.
-* You hate the admin bar and have disabled it, but still want an easy shortcut to edit an item.
-* You have clients. Send them a pretty URL with "/edit" on the end.
+Slash Edit is built for speed. Whether you're a developer, editor, or site owner, it gives you a consistent **shortcut to edit posts and pages** without relying on the admin bar.
 
-As a security precaution, only users with Editor privileges or above can edit items.
+* No more searching through the dashboard  
+* No more long admin URLs  
+* Just a fast and predictable **edit shortcut**
+
+== Replace Complex Admin URLs ==
+
+Stop sharing links like:
+
+> `https://yourdomain.com/wp-admin/post.php?post=123&action=edit`
+
+Instead, send a clean **edit page shortcut**:
+
+> `https://yourdomain.com/about/edit`
+
+Perfect for clients and teams who need a simple way to **quick edit content** or for email clients who mangle URLs.
+
+== What You Can Edit ==
+
+Slash Edit works across your entire site:
+
+* Posts and pages  
+* Custom post types  
+* Users  
+* Categories and tags  
+* Taxonomies  
+* Author archives  
+* Front page (if assigned)
+* Blog page (if assigned) 
+
+If you are not logged in, you will be prompted to log in and then redirected to the correct edit screen.
+
+== Why Use This Edit Shortcut? ==
+
+* You want to **edit posts and pages quickly**  
+* You need a reliable **admin shortcut** without the admin bar  
+* You want to send clients a simple **edit page link**  
+* You prefer a fast **quick edit workflow**  
+
+== Security ==
+
+Only users with Editor capabilities (or higher) can access edit screens.
+
+Developers can customize access using filters:
+
+* `slash_edit_capability_check`  
+* `slash_edit_can_edit`  
+
+== Developer Friendly ==
+
+* Filter the `/edit` endpoint if needed  
+* Extend redirect behavior  
+* Lightweight and no settings required  
 
 == Installation ==
 
@@ -36,30 +90,51 @@ As a security precaution, only users with Editor privileges or above can edit it
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Frequently Asked Questions ==
+
 = How do I use the plugin? =
-Just browse to the posts, pages, post types, users, archives, and terms and add "/edit" to the end (e.g., http://domain.com/posts/edit).
+Navigate to any post, page, or archive and add `/edit` to the end of the URL.
 
-You'll need <a href="https://wordpress.org/documentation/article/customize-permalinks/">pretty permalinks enabled</a>, which pretty much everyone already does.
+Example (editing a page):
+> https://example.com/about/edit
 
-= Who can edit items? =
-Only Editors and above. This can be overridden by filters `slash_edit_capability_check` and `slash_edit_can_edit`.
+Example (editing the homepage):
 
-= Will you allow quick editing of categories and other items later? =
-You're able to edit any term or category item by adding `/edit` to the end.
+> https://example.com/edit
 
-= What about attachment pages? =
-That one I couldn't figure out. Most themes disable this. Patches welcome.
+Example (editing a user):
 
-= Where are the options? =
-No options :)
+> https://example.com/author/myuser/edit
 
-= English is not my first language.  Can I change the "/edit" into something else? =
 
-Yep, just throw <a href="https://gist.github.com/ronalfy/cbbc1599bda2811c9a86">this code</a> in a <a href="http://www.wpbeginner.com/beginners-guide/what-why-and-how-tos-of-creating-a-site-specific-wordpress-plugin/">Site-specific plugin</a>.
+= Do I need pretty permalinks enabled? =
+Yes. Slash Edit requires pretty permalinks to work.
 
-Just keep in mind that whatever you choose to override with must be alphanumeric characters.  Something like edición will be parsed as edicion.
+= Who can access edit links? =
+Only users with Editor permissions or higher by default.
 
-If you choose to use this filter, you'll need to <a href="https://wordpress.org/documentation/article/settings-permalinks-screen/">update your permalinks</a> or deactivate and reactivate the Slash Edit plugin.
+Developers can override this using the provided filters.
+
+= What happens if I am not logged in? =
+You will be redirected to the login screen and then back to the correct edit page.
+
+= Does this work with custom post types and taxonomies? =
+Yes. Slash Edit supports custom post types, taxonomies, and some archives.
+
+= What happens on archive pages? =
+That's still in the works for custom post types.
+
+All term archives work.
+
+Blog archives redirect to Settings > Reading.
+
+= Can I change `/edit` to something else? =
+Yes. You can use the provided filter `slash_edit_endpoint` and then flush permalinks.
+
+= Are there any settings? =
+No. The plugin works out of the box with no configuration required.
+
+= Does this plugin work with WordPress Multisite? =
+Yes, this plugin works wonderfully with Multisite.
 
 == Screenshots ==
 
