@@ -76,9 +76,8 @@ When a WordPress Playground or demo site is generated, you don't always know the
 
 `/about/edit`
 
-If you have theme demos you can **take your users right to the customizer or Full Site Editor** with a shortcut:
+If you have theme demos you can **take your users right to the customizer or Full Site Editor** with a shortcut: `/theme/edit`
 
-`/theme/edit`
 
 == Examples of Slash Edit in Use ==
 
