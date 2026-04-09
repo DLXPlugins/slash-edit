@@ -8,11 +8,11 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://mediaron.com/give/
 
-Edit posts, pages, users, and more with a simple `/edit` URL shortcut. A fast admin shortcut for WordPress editing.
+Save time by editing posts, pages, users, and more with a simple `/edit` URL shortcut. This is a fast admin shortcut for WordPress admin editing.
 
 == Description ==
 
-Slash Edit adds a simple **admin shortcut** to WordPress that lets you **edit posts and pages quickly** by adding `/edit` to any URL.
+Slash Edit saves you time by adding a simple admin shortcut to WordPress that lets you edit posts and pages quickly by adding `/edit` to almost any URL.
 
 Instead of navigating through wp-admin or relying on the admin bar, just append `/edit` and go straight to the edit screen.
 
@@ -20,20 +20,21 @@ Instead of navigating through wp-admin or relying on the admin bar, just append 
 
 This makes it easy to:
 
-* **Edit posts quickly**
-* **Edit pages quickly**
-* Use a reliable **quick edit shortcut**
-* Access a clean **admin shortcut to edit content**
+* Edit posts quickly
+* Edit pages quickly
+* Use a reliable quick edit shortcut
+* Access a clean admin shortcut to edit content
+* Securely share admin edit links with clients
 
 https://www.youtube.com/watch?v=8LKFK5-FokE
 
-== A True WordPress Shortcut for Editing ==
+== A True WordPress Shortcut for Editing - /edit ==
 
-Slash Edit is built for speed. Whether you're a developer, editor, or site owner, it gives you a consistent **shortcut to edit posts and pages** without relying on the admin bar.
+Slash Edit is built for speed. Whether you're a developer, editor, or site owner, it gives you a consistent shortcut to edit posts and pages without relying on the admin bar.
 
 * No more searching through the dashboard  
 * No more long admin URLs  
-* Just a fast and predictable **edit shortcut**
+* Just a fast and predictable edit shortcut that is there when you need it
 
 == Replace Complex Admin URLs ==
 
@@ -41,11 +42,11 @@ Stop sharing links like:
 
 > `https://yourdomain.com/wp-admin/post.php?post=123&action=edit`
 
-Instead, send a clean **edit page shortcut**:
+Instead, send a clean edit page shortcut:
 
 > `https://yourdomain.com/about/edit`
 
-Perfect for clients and teams who need a simple way to **quick edit content** or for email clients who mangle URLs.
+Perfect for clients and teams who need a simple way to quick edit content or for email senders who mangle URLs.
 
 == What You Can Edit ==
 
@@ -64,10 +65,46 @@ If you are not logged in, you will be prompted to log in and then redirected to 
 
 == Why Use This Edit Shortcut? ==
 
-* You want to **edit posts and pages quickly**  
-* You need a reliable **admin shortcut** without the admin bar  
-* You want to send clients a simple **edit page link**  
-* You prefer a fast **quick edit workflow**  
+* You want to edit posts and pages quickly  
+* You need a reliable admin shortcut without the admin bar  
+* You want to send clients a simple edit page link  
+* You prefer a fast quick edit workflow
+
+== Slash Edit is Perfect for WordPress Plugin and Theme Demos ==
+
+When a WordPress Playground or demo site is generated, you don't always know the final ID or URL of an item. With Slash Edit installed, give them a relative link such as:
+
+`/about/edit`
+
+If you have theme demos you can **take your users right to the customizer or Full Site Editor** with a shortcut:
+
+`/theme/edit`
+
+== Examples of Slash Edit in Use ==
+
+* Edit the homepage: `https://yourdomain.com/edit`
+* Edit a page: `https://yourdomain.com/about/edit`
+* Edit a post: `https://yourdomain.com/blog/your-blog-post/edit`
+* Shortcut to your Custom Post Type list view: `https://yourdomain.com/articles/edit`
+* Shortcut to WooCommerce shop list view: `https://yourdomain.com/shop/edit`
+* Shortcut to WooCommerce shop list view: `https://yourdomain.com/product/edit`
+* Shortcut to Easy Digital Downloads downloads list view: `https://yourdomain.com/download/edit`.
+* Edit an author's profile: `https://yourdomain.com/author/myuser/edit`
+* Shortcut to the users' screen: `https://yourdomain.com/author/edit` or `https://yourdomain.com/users/edit` or `https://yourdomain.com/authors/edit`.
+* Edit a category: `https://yourdomain.com/category/category-one/edit`
+* Edit a tag: `https://yourdomain.com/tag/new-tag/edit`
+* Open Full Site Editor or Customizer: `https://yourdomain.com/theme/edit`
+
+**Example: Creating a Custom Endpoint**
+
+Changes `/edit` to `/editar`. Make sure to flush permalinks after any endpoint changes.
+
+`
+<?php
+add_filter( 'slash_edit_endpoint', function( $endpoint ) ) {
+	return 'editar';
+}
+`
 
 == Security ==
 
@@ -95,22 +132,30 @@ Developers can customize access using filters:
 Navigate to any post, page, or archive and add `/edit` to the end of the URL.
 
 Example (editing a page):
-> https://example.com/about/edit
+
+`https://example.com/about/edit`
 
 Example (editing the homepage):
 
-> https://example.com/edit
+`https://example.com/edit`
 
 Example (editing a user):
 
-> https://example.com/author/myuser/edit
+`https://example.com/author/myuser/edit`
 
 
 = Do I need pretty permalinks enabled? =
-Yes. Slash Edit requires pretty permalinks to work.
+Yes. Slash Edit requires pretty permalinks to work. Please flush permalinks if any `/edit` URLs 404 when they shouldn't.
 
 = Who can access edit links? =
-Only users with Editor permissions or higher by default.
+Only users with Editor permissions or higher by default. For security, final edit URLs aren't revealed until a permissions check through wp-admin.
+
+The way it works is:
+
+1. The `/edit` rule is captured and parsed.
+2. One-time token is generated, saved as a transient.
+3. Token is passed via the WordPress admin, which checks the token and user's permissions.
+4. If a user has the right permissions, the user is redirected to the appropriate admin area.
 
 Developers can override this using the provided filters.
 
@@ -118,17 +163,30 @@ Developers can override this using the provided filters.
 You will be redirected to the login screen and then back to the correct edit page.
 
 = Does this work with custom post types and taxonomies? =
-Yes. Slash Edit supports custom post types, taxonomies, and some archives.
+Yes. Slash Edit supports custom post types, taxonomies, and most archives.
 
 = What happens on archive pages? =
-That's still in the works for custom post types.
+Most CPT archives should redirect you to the post type's list view in the admin.
 
-All term archives work.
+All term and author archives work.
 
 Blog archives redirect to Settings > Reading.
 
+Special archives like WooCommerce allow for `/product/edit` or `/shop/edit`.
+
 = Can I change `/edit` to something else? =
 Yes. You can use the provided filter `slash_edit_endpoint` and then flush permalinks.
+
+**Example: Creating a Custom Endpoint**
+
+Changes `/edit` to `/editar`. Make sure to flush permalinks after any endpoint changes.
+
+`
+<?php
+add_filter( 'slash_edit_endpoint', function( $endpoint ) ) {
+	return 'editar';
+}
+`
 
 = Are there any settings? =
 No. The plugin works out of the box with no configuration required.
@@ -136,11 +194,22 @@ No. The plugin works out of the box with no configuration required.
 = Does this plugin work with WordPress Multisite? =
 Yes, this plugin works wonderfully with Multisite.
 
+= What happens if a /edit URL 404's? =
+
+Try flushing permalinks and/or setting pretty permalinks if they are not already enabled.
+
 == Screenshots ==
 
 1. Slash Edit when editing a post on the front-end.
 
 == Changelog ==
+
+= 1.3.0 =
+* Updated 2026-04-08
+* New: Added `/authors/edit`, `/users/edit`,  and `/author/edit` for accessing the users' screen in the admin.
+* New: Added `/theme/edit` for accessing the Full Site Editor for block themes, otherwise the customizer.
+* New: Added singular slugs to post type archive editing, so a post type with archive `shops` and singular `product` will both have `/edit` endpoints and go to the same product list view.
+* New: Added more examples to the readme.
 
 = 1.2.0 =
 * Updated 2025-12-06
@@ -168,5 +237,5 @@ Yes, this plugin works wonderfully with Multisite.
 
 == Upgrade Notice ==
 
-= 1.2.0 =
-Security fix: New version no longer exposes IDs to non-logged-in users. Only those with Editor privileges or above can edit items. Code cleanup, and better ability to edit terms and archive items.
+= 1.3.0 =
+New shortcuts to take you to the users' screen in the admin. New shortcuts for editing a theme. Added better post type archive editing compatibility.

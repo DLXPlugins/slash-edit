@@ -37,7 +37,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.2.1'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.2'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -63,6 +63,7 @@ class Slash_Edit {
 		add_action( 'save_post', array( 'Slash_Edit', 'save_post' ) );
 		$this->endpoint = sanitize_title( apply_filters( 'slash_edit_endpoint', 'edit' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_from_admin' ) );
+		add_filter( 'query_vars', array( $this, 'add_query_vars' ) );
 	} //end constructor
 
 	/**
@@ -72,6 +73,21 @@ class Slash_Edit {
 	 */
 	public function get_endpoint() {
 		return $this->endpoint;
+	}
+
+	/**
+	 * Add query vars
+	 *
+	 * @param array $query_vars Query vars.
+	 *
+	 * @return array
+	 */
+	public function add_query_vars( $query_vars ) {
+		$query_vars[] = 'author';
+		$query_vars[] = 'theme';
+		$query_vars[] = 'users';
+		$query_vars[] = 'authors';
+		return $query_vars;
 	}
 
 	/**
@@ -138,11 +154,15 @@ class Slash_Edit {
 			$post_type_obj = get_post_type_object( $post_type );
 
 			// Determine the archive slug.
-			$slug = $post_type_obj->name;
+			$cpt_archive_slugs_to_add = array();
 			if ( is_string( $post_type_obj->has_archive ) ) {
-				$slug = $post_type_obj->has_archive;
-			} elseif ( isset( $post_type_obj->rewrite['slug'] ) ) {
-				$slug = $post_type_obj->rewrite['slug'];
+				$cpt_archive_slugs_to_add[] = sanitize_title( $post_type_obj->has_archive );
+			}
+			// This is the singular slug, but should act as an archive too if post name is ommitted.
+			if ( isset( $post_type_obj->rewrite['slug'] ) ) {
+				$cpt_archive_slugs_to_add[] = sanitize_title( $post_type_obj->rewrite['slug'] );
+			} else {
+				$cpt_archive_slugs_to_add[] = sanitize_title( $post_type_obj->name );
 			}
 
 			// Check if we need to add front.
@@ -152,17 +172,29 @@ class Slash_Edit {
 			}
 
 			if ( $has_front && ! empty( $wp_rewrite->front ) ) {
-				$slug = substr( $wp_rewrite->front, 1 ) . $slug;
+				foreach ( $cpt_archive_slugs_to_add as $key => $archive_slug ) {
+					$cpt_archive_slugs_to_add[ $key ] = substr( $wp_rewrite->front, 1 ) . $archive_slug;
+				}
 			}
 
-			// Add the archive edit rule.
-			$rule_structure                   = "{$blog_prefix}{$slug}/{$endpoint}/?$";
-			$endpoint_structure               = 'index.php?post_type=' . $post_type . '&' . $endpoint . '=1';
-			$archive_rules[ $rule_structure ] = $endpoint_structure;
+			// Add the archive edit rules.
+			foreach ( $cpt_archive_slugs_to_add as $archive_slug ) {
+				$rule_structure                   = "{$blog_prefix}{$archive_slug}/{$endpoint}/?$";
+				$endpoint_structure               = 'index.php?post_type=' . $post_type . '&' . $endpoint . '=1';
+				$archive_rules[ $rule_structure ] = $endpoint_structure;
+			}
 		}
+
+		// Add /author/edit to rewrites.
+		$archive_rules[ "author/{$endpoint}/?$" ]  = 'index.php?author=$matches[1]&' . $endpoint . '=1';
+		$archive_rules[ "users/{$endpoint}/?$" ]   = 'index.php?users=$matches[1]&' . $endpoint . '=1';
+		$archive_rules[ "authors/{$endpoint}/?$" ] = 'index.php?authors=$matches[1]&' . $endpoint . '=1';
+
+		// Add /theme/edit to rewrites.
+		$archive_rules[ "theme/{$endpoint}/?$" ] = 'index.php?theme=$matches[1]&' . $endpoint . '=1';
+
 		// Merge archive rules at the beginning for precedence.
-		$rules = $archive_rules + $rules;
-		// Add home_url/edit to rewrites.
+		$rules                    = $archive_rules + $rules;
 		$add_frontpage_edit_rules = false;
 		if ( ! get_page_by_path( $endpoint ) ) {
 			$add_frontpage_edit_rules = true;
@@ -371,6 +403,14 @@ class Slash_Edit {
 		} elseif ( 'frontpage' === get_query_var( 'edit' ) ) {
 			// No front page set - so redirect back to homepage.
 			$edit_url = home_url();
+		} elseif ( ( isset( $wp_query->query['author'] ) || isset( $wp_query->query['users'] ) || isset( $wp_query->query['authors'] ) ) && get_query_var( 'edit' ) ) {
+			$edit_url = admin_url( 'users.php' );
+		} elseif ( isset( $wp_query->query['theme'] ) && get_query_var( 'edit' ) ) {
+			if ( wp_is_block_theme() ) {
+				$edit_url = admin_url( 'site-editor.php' );
+			} else {
+				$edit_url = admin_url( 'customize.php' );
+			}
 		} elseif ( is_home() ) {
 			$edit_url = admin_url( 'options-reading.php' );
 		}
