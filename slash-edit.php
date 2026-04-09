@@ -12,6 +12,10 @@
  * @package slash-edit
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Slash Edit for WordPress
  *
