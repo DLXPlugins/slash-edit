@@ -4,7 +4,7 @@
  * Plugin URI: https://mediaron.com
  * Description: Edit your posts or pages with a simple "/edit" at the end.
  * Author: Ronald Huereca
- * Version: 1.2.0
+ * Version: 1.3.0
  * Requires at least: 3.9.1
  * Author URI: https://mediaron.com
  * Contributors: ronalfy
