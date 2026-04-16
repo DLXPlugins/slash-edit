@@ -81,20 +81,46 @@ If you have theme demos you can **take your users right to the customizer or Ful
 
 == Examples of Slash Edit in Use ==
 
-* Edit the homepage: `https://yourdomain.com/edit`
-* Edit a page: `https://yourdomain.com/about/edit`
-* Edit a post: `https://yourdomain.com/blog/your-blog-post/edit`
-* Shortcut to your Custom Post Type list view: `https://yourdomain.com/articles/edit`
-* Shortcut to WooCommerce shop list view: `https://yourdomain.com/shop/edit`
-* Shortcut to WooCommerce shop list view: `https://yourdomain.com/product/edit`
-* Shortcut to Easy Digital Downloads downloads list view: `https://yourdomain.com/download/edit`.
-* Edit an author's profile: `https://yourdomain.com/author/myuser/edit`
-* Shortcut to the users' screen: `https://yourdomain.com/author/edit` or `https://yourdomain.com/users/edit` or `https://yourdomain.com/authors/edit`.
-* Edit a category: `https://yourdomain.com/category/category-one/edit`
-* Edit a tag: `https://yourdomain.com/tag/new-tag/edit`
-* Open Full Site Editor or Customizer: `https://yourdomain.com/theme/edit`
+**Content Editing**
 
-**Example: Creating a Custom Endpoint**
+* Homepage: `https://yourdomain.com/edit`
+* Page: `https://yourdomain.com/about/edit`
+* Post: `https://yourdomain.com/blog/your-blog-post/edit`
+* Custom Post Type: `https://yourdomain.com/resources/my-resource/edit`
+* Deeply Nested Post Type (example: lessons): `https://yourdomain.com/courses/new-course/lessons/new-lesson/edit`
+* WooCommerce: `https://yourdomain.com/product/product-123/edit
+
+**Post Types Archives**
+
+* Custom Post Type (example: articles): `https://yourdomain.com/articles/edit`
+* WooCommerce Products: `https://yourdomain.com/product/edit` or `https://yourdomain.com/shop/edit`
+* Easy Digital Downloads: `https://yourdomain.com/downloads/edit`
+
+**Users**
+
+* Edit author profile: `https://yourdomain.com/author/myuser/edit`
+* Users list:
+  * `https://yourdomain.com/users/edit`
+  * `https://yourdomain.com/author/edit`
+  * `https://yourdomain.com/authors/edit`
+
+**Taxonomies**
+
+* Category: `https://yourdomain.com/category/category-one/edit`
+* Tag: `https://yourdomain.com/tag/new-tag/edit`
+* Custom Taxonomy: `https://yourdomain.com/topics/hosting/edit`
+* Nested Taxonomy Within Post Type: `https://yourdomain.com/how-tos/topics/hosting/edit`
+
+**Theme Editing**
+
+* Full Site Editor / Customizer: `https://yourdomain.com/theme/edit`
+
+**Multisite**
+
+* Go to a Site's edit screen: `https://mymultisite.com/site/edit`
+* Go to all sites in the network admin: `https://mymultisite.com/sites/edit`
+
+**Example: Changing the Endpoint**
 
 Changes `/edit` to `/editar`. Make sure to flush permalinks after any endpoint changes.
 

@@ -41,7 +41,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.2.5'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.7'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -92,6 +92,7 @@ class Slash_Edit {
 		$query_vars[] = 'users';
 		$query_vars[] = 'authors';
 		$query_vars[] = 'site';
+		$query_vars[] = 'sites';
 		return $query_vars;
 	}
 
@@ -213,6 +214,7 @@ class Slash_Edit {
 
 		// Add /site/edit to rewrites.
 		$archive_rules[ "site/{$endpoint}/?$" ] = 'index.php?site=$matches[1]&' . $endpoint . '=1';
+		$archive_rules[ "sites/{$endpoint}/?$" ] = 'index.php?sites=$matches[1]&' . $endpoint . '=1';
 
 		// Add /theme/edit to rewrites.
 		$archive_rules[ "theme/{$endpoint}/?$" ] = 'index.php?theme=$matches[1]&' . $endpoint . '=1';
@@ -318,7 +320,7 @@ class Slash_Edit {
 
 		// If path contains `wp-admin/network`, check for `manage_network` capability.
 		if ( strpos( $edit_url, 'wp-admin/network' ) !== false ) {
-			if ( ! current_user_can( 'manage_network' ) ) {
+			if ( is_multisite() && ! current_user_can( 'manage_network' ) ) {
 				wp_die( __( 'You are not authorized to edit this network item.', 'slash-edit' ) );
 			}
 		}
@@ -536,6 +538,10 @@ class Slash_Edit {
 					),
 					network_admin_url( 'site-info.php' )
 				);
+			}
+		} elseif ( isset( $wp_query->query['sites'] ) && get_query_var( 'edit' ) ) {
+			if ( is_multisite() ) {
+				$edit_url = network_admin_url( 'sites.php' );
 			}
 		} elseif ( is_home() ) {
 			$edit_url = admin_url( 'options-reading.php' );
