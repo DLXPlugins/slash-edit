@@ -41,7 +41,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.2.4'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.5'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -254,7 +254,7 @@ class Slash_Edit {
 
 		// Determine if we need to flush rules for a new version of the plugin.
 		$version = get_option( 'slash_edit_version', '1.0.0' );
-		if ( version_compare( $this->last_rewrite_version_update, $version, 'gt' ) ) {
+		if ( $version !== $this->last_rewrite_version_update ) {
 			update_option( 'slash_edit_version', $this->last_rewrite_version_update );
 			flush_rewrite_rules( true );
 		}
