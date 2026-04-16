@@ -314,17 +314,68 @@ class Slash_Edit {
 	}
 
 	/**
+	 * Check if the query has the endpoint.
+	 *
+	 * @param WP_Query $query The query.
+	 * @return bool
+	 */
+	protected static function has_endpoint( $query ) {
+		$endpoint = self::get_instance()->get_endpoint();
+		if ( isset( $query->query_vars[ $endpoint ] ) ) {
+			return true;
+		}
+
+		// The `/edit` may be hidden in $query->query['name'] or $query->query['pagename'] in format `/slug/edit`.
+		if ( isset( $query->query['name'] ) && preg_match( '/\/?' . $endpoint . '\/?$/', $query->query['name'] ) ) {
+			return true;
+		}
+
+		if ( isset( $query->query['pagename'] ) && preg_match( '/\/' . $endpoint . '\/?$/', $query->query['pagename'] ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Get the edit URL by path.
+	 *
+	 * @param string $path The path.
+	 * @param string $post_type The post type.
+	 * @return int 0 if no post found, otherwise the post ID.
+	 */
+	protected static function get_id_by_path( $path, $post_type = '' ) {
+		$maybe_has_path = get_page_by_path( $path, OBJECT, array( $post_type ) );
+		if ( is_a( $maybe_has_path, 'WP_Post' ) ) {
+			return absint( $maybe_has_path->ID );
+		}
+		// Now do a double-check using wpdb. This duplicates get_page_by_path, but doesn't care about post parent.
+		global $wpdb;
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT ID, post_name, post_parent, post_type FROM $wpdb->posts WHERE post_name = %s AND post_type = %s AND post_status = 'publish' LIMIT 1
+		",
+				esc_sql( $path ),
+				esc_sql( $post_type )
+			),
+			ARRAY_A
+		);
+		if ( is_array( $results ) && count( $results ) > 0 ) {
+			return absint( $results[0]['ID'] );
+		}
+		return 0;
+	}
+
+	/**
 	 * Maybe redirect.
 	 *
 	 * @return void
 	 */
 	public static function maybe_redirect() {
 		global $wp_query;
-		$endpoint = self::get_instance()->get_endpoint();
-		if ( ! isset( $wp_query->query_vars[ $endpoint ] ) ) {
+		if ( ! self::has_endpoint( $wp_query ) ) {
 			return;
 		}
-
+		$endpoint = self::get_instance()->get_endpoint();
 		$edit_url = false;
 		/**
 		 * Post, page, attachment, or CPTs.
@@ -389,6 +440,40 @@ class Slash_Edit {
 				$edit_url = add_query_arg(
 					array(
 						'post_type' => $post_type,
+					),
+					admin_url( 'edit.php' )
+				);
+			}
+		} elseif ( isset( $wp_query->query['post_type'] ) && isset( $wp_query->query['name'] ) ) {
+			// We're in a singular post type or post type archive, but the endpoint has been appended to the name in the query.
+			$temp_post_slug    = sanitize_title( str_replace( '/', '', $wp_query->query['name'] ) );
+			$current_post_slug = get_query_var( 'name' );
+
+			// Make sure both bad names match to ensure intentions.
+			if ( $temp_post_slug === $current_post_slug && 'edit' !== $temp_post_slug ) {
+				// Strip `/edit` out from the name. This should leave you with the post slug.
+				$new_post_slug = sanitize_title( preg_replace( '/\/' . $endpoint . '\/?$/', '/', $wp_query->query['name'] ) );
+				$new_post_type = sanitize_key( $wp_query->query['post_type'] );
+
+				// Try to get the post ID.
+				$maybe_new_post_id = self::get_id_by_path( $new_post_slug, $new_post_type );
+
+				// If post is valid and post type matches, build the edit URL.
+				if ( 0 !== $maybe_new_post_id && get_post( $maybe_new_post_id ) && get_post_type( $maybe_new_post_id ) === $new_post_type ) {
+					$edit_url = add_query_arg(
+						array(
+							'post'   => absint( $maybe_new_post_id ),
+							'action' => 'edit',
+						),
+						admin_url( 'post.php' )
+					);
+				}
+			} elseif ( 'edit' === $temp_post_slug ) {
+				// We're in a post type archive, but the endpoint has been appended to the name in the query.
+				$new_post_type = sanitize_key( $wp_query->query['post_type'] );
+				$edit_url      = add_query_arg(
+					array(
+						'post_type' => $new_post_type,
 					),
 					admin_url( 'edit.php' )
 				);
