@@ -41,7 +41,7 @@ class Slash_Edit {
 	 *
 	 * @var string
 	 */
-	private $last_rewrite_version_update = '1.2.2'; // Will increment any time I need to change rewrite rules.
+	private $last_rewrite_version_update = '1.2.4'; // Will increment any time I need to change rewrite rules.
 
 	/**
 	 * Get the singleton instance
@@ -91,6 +91,7 @@ class Slash_Edit {
 		$query_vars[] = 'theme';
 		$query_vars[] = 'users';
 		$query_vars[] = 'authors';
+		$query_vars[] = 'site';
 		return $query_vars;
 	}
 
@@ -129,27 +130,43 @@ class Slash_Edit {
 		if ( is_multisite() && ! is_subdomain_install() && is_main_site() ) { /* stolen from /wp-admin/options-permalink.php */
 			$blog_prefix = 'blog/';
 		}
-		$exclude = array(
+		$exclude   = array(
 			'category',
 			'post_tag',
 			'nav_menu',
 			'link_category',
 			'post_format',
 		);
+		$tax_rules = array();
 		foreach ( $taxonomies as $key => $taxonomy ) {
 			if ( in_array( $key, $exclude, true ) ) {
 				continue;
 			}
-			// $key may have a front, so check the rewrite structure for a front.
-			$taxonomy_rewrite = get_taxonomy( $key )->rewrite;
-			$taxonomy_slug    = $key;
-			if ( isset( $taxonomy_rewrite['slug'] ) ) {
-				$taxonomy_slug = $taxonomy_rewrite['slug'];
+			$taxonomy_obj = get_taxonomy( $key );
+
+			if ( ! $taxonomy_obj || empty( $taxonomy_obj->rewrite ) ) {
+				continue;
 			}
-			$rule_structure           = "{$blog_prefix}{$taxonomy_slug}(?:/([^/]+)/)+{$endpoint}(/(.*))?/?$";
-			$endpoint_structure       = 'index.php?' . $key . '=$matches[1]&' . $endpoint . '=$matches[3]';
-			$rules[ $rule_structure ] = $endpoint_structure;
+
+			$taxonomy_slug = $taxonomy_obj->rewrite['slug'] ?? $key;
+			$query_var     = $taxonomy_obj->query_var ? $taxonomy_obj->query_var : $key;
+
+			$rule_structure = sprintf(
+				'%1$s%2$s/(.+?)/%3$s/?$',
+				preg_quote( $blog_prefix, '#' ),
+				preg_quote( $taxonomy_slug, '#' ),
+				preg_quote( $endpoint, '#' )
+			);
+
+			$endpoint_structure = sprintf(
+				'index.php?%1$s=$matches[1]&%2$s=1',
+				$query_var,
+				$endpoint
+			);
+
+			$tax_rules[ $rule_structure ] = $endpoint_structure;
 		}
+		$rules = $tax_rules + $rules; // Add tax rules to the beginning of the rules array for precedence.
 
 		// Add post type archive rules. This allows things like /faqs/edit, and will take  you to the post type edit screen.
 		$post_types    = get_post_types( array( 'has_archive' => true ) );
@@ -193,6 +210,9 @@ class Slash_Edit {
 		$archive_rules[ "author/{$endpoint}/?$" ]  = 'index.php?author=$matches[1]&' . $endpoint . '=1';
 		$archive_rules[ "users/{$endpoint}/?$" ]   = 'index.php?users=$matches[1]&' . $endpoint . '=1';
 		$archive_rules[ "authors/{$endpoint}/?$" ] = 'index.php?authors=$matches[1]&' . $endpoint . '=1';
+
+		// Add /site/edit to rewrites.
+		$archive_rules[ "site/{$endpoint}/?$" ] = 'index.php?site=$matches[1]&' . $endpoint . '=1';
 
 		// Add /theme/edit to rewrites.
 		$archive_rules[ "theme/{$endpoint}/?$" ] = 'index.php?theme=$matches[1]&' . $endpoint . '=1';
@@ -296,6 +316,13 @@ class Slash_Edit {
 		 */
 		$capability_check = apply_filters( 'slash_edit_capability_check', 'edit_others_posts', $edit_url );
 
+		// If path contains `wp-admin/network`, check for `manage_network` capability.
+		if ( strpos( $edit_url, 'wp-admin/network' ) !== false ) {
+			if ( ! current_user_can( 'manage_network' ) ) {
+				wp_die( __( 'You are not authorized to edit this network item.', 'slash-edit' ) );
+			}
+		}
+
 		/**
 		 * Filter Can Edit override. If true, the user can edit the item regardless of the capability check.
 		 *
@@ -325,7 +352,7 @@ class Slash_Edit {
 			return true;
 		}
 
-		// The `/edit` may be hidden in $query->query['name'] or $query->query['pagename'] in format `/slug/edit`.
+		// The `/edit` may be hidden in $query->query['name'] or $query->query['pagename'] in format `/slug/edit`. Can also just be `edit`.
 		if ( isset( $query->query['name'] ) && preg_match( '/\/?' . $endpoint . '\/?$/', $query->query['name'] ) ) {
 			return true;
 		}
@@ -499,6 +526,16 @@ class Slash_Edit {
 				$edit_url = admin_url( 'site-editor.php' );
 			} else {
 				$edit_url = admin_url( 'customize.php' );
+			}
+		} elseif ( isset( $wp_query->query['site'] ) && get_query_var( 'edit' ) ) {
+			if ( is_multisite() ) {
+				$site_id  = get_current_blog_id();
+				$edit_url = add_query_arg(
+					array(
+						'id' => $site_id,
+					),
+					network_admin_url( 'site-info.php' )
+				);
 			}
 		} elseif ( is_home() ) {
 			$edit_url = admin_url( 'options-reading.php' );
