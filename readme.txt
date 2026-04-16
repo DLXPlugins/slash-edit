@@ -3,7 +3,7 @@ Contributors: ronalfy
 Tags: shortcuts, edit, edit post, edit page, quick-edit
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.3.0
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://mediaron.com/give/
@@ -228,6 +228,12 @@ Try flushing permalinks and/or setting pretty permalinks if they are not already
 1. Slash Edit when editing a post on the front-end.
 
 == Changelog ==
+ 
+= 1.3.2 =
+* Updated 2026-04-16
+* New: Added `/site/edit` and `/sites/edit` for Multisite installs for accessing the sites screen easily.
+* Fix: Nested and custom taxonomies with terms weren't editable.
+* Fix: Nested post types (post types within post types) weren't editable.
 
 = 1.3.0 =
 * Updated 2026-04-08
@@ -262,5 +268,5 @@ Try flushing permalinks and/or setting pretty permalinks if they are not already
 
 == Upgrade Notice ==
 
-= 1.3.0 =
-New shortcuts to take you to the users' screen in the admin. New shortcuts for editing a theme. Added better post type archive editing compatibility.
+= 1.3.2 =
+Added a few multisite shortcuts. Fixed taxonomy terms from custom taxonomies not being editable. Fixed nested post types not being editable.
